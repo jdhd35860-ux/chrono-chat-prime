@@ -1,14 +1,33 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import React, { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { ChatLayout } from '@/components/ChatLayout';
+import { useAuth } from '@/hooks/useAuth';
 
 const Index = () => {
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate('/auth');
+    }
+  }, [user, loading, navigate]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="glass rounded-full p-8">
+          <div className="spinner w-8 h-8 border-2 border-neon-cyan border-t-transparent rounded-full"></div>
+        </div>
       </div>
-    </div>
-  );
+    );
+  }
+
+  if (!user) {
+    return null; // Will redirect to auth
+  }
+
+  return <ChatLayout />;
 };
 
 export default Index;
