@@ -4,7 +4,6 @@ import { ChatInterface } from "@/components/ChatInterface";
 import { PointsDisplay } from "@/components/PointsDisplay";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { Menu } from "lucide-react";
 
 interface Conversation {
   id: string;
@@ -28,7 +27,6 @@ export const ChatLayout = () => {
 
   const loadConversations = async () => {
     if (!user) return;
-
     try {
       const { data, error } = await supabase
         .from("conversations")
@@ -38,7 +36,6 @@ export const ChatLayout = () => {
 
       if (error) throw error;
       setConversations(data || []);
-
       if (data && data.length > 0) {
         setActiveConversationId(data[0].id);
       } else {
@@ -53,24 +50,17 @@ export const ChatLayout = () => {
 
   const createNewConversation = async (title = "New Conversation") => {
     if (!user) return;
-
     try {
       const { data, error } = await supabase
         .from("conversations")
-        .insert({
-          user_id: user.id,
-          title,
-        })
+        .insert({ user_id: user.id, title })
         .select()
         .single();
 
       if (error) throw error;
-
-      const newConversation = data;
-      setConversations((prev) => [newConversation, ...prev]);
-      setActiveConversationId(newConversation.id);
-
-      return newConversation;
+      setConversations((prev) => [data, ...prev]);
+      setActiveConversationId(data.id);
+      return data;
     } catch (error) {
       console.error("Error creating conversation:", error);
     }
@@ -84,7 +74,6 @@ export const ChatLayout = () => {
         .eq("id", id);
 
       if (error) throw error;
-
       setConversations((prev) =>
         prev.map((conv) => (conv.id === id ? { ...conv, title } : conv))
       );
@@ -96,11 +85,9 @@ export const ChatLayout = () => {
   const deleteConversation = async (id: string) => {
     try {
       const { error } = await supabase.from("conversations").delete().eq("id", id);
-
       if (error) throw error;
 
       setConversations((prev) => prev.filter((conv) => conv.id !== id));
-
       if (activeConversationId === id) {
         const remaining = conversations.filter((conv) => conv.id !== id);
         if (remaining.length > 0) {
@@ -133,14 +120,14 @@ export const ChatLayout = () => {
             onClick={() => setSidebarOpen(true)}
             className="p-2 rounded-lg hover:bg-muted transition md:hidden"
           >
-            <Menu size={22} />
+            ☰
           </button>
           <h1 className="text-xl font-semibold gradient-text">ChronoChat Prime</h1>
         </div>
         <PointsDisplay />
       </div>
 
-      {/* Sidebar (Drawer) */}
+      {/* Sidebar Drawer */}
       {sidebarOpen && (
         <div className="fixed inset-0 bg-black/40 z-40 md:hidden" onClick={() => setSidebarOpen(false)} />
       )}
@@ -161,18 +148,16 @@ export const ChatLayout = () => {
         />
       </div>
 
-      {/* Chat area */}
+      {/* Chat Area */}
       <div className="flex-1 flex flex-col md:ml-72">
-        <div className="flex-1">
-          {activeConversationId && (
-            <ChatInterface
-              conversationId={activeConversationId}
-              onUpdateTitle={(title) =>
-                updateConversationTitle(activeConversationId, title)
-              }
-            />
-          )}
-        </div>
+        {activeConversationId && (
+          <ChatInterface
+            conversationId={activeConversationId}
+            onUpdateTitle={(title) =>
+              updateConversationTitle(activeConversationId, title)
+            }
+          />
+        )}
       </div>
     </div>
   );
